@@ -4,6 +4,7 @@ var request = require('request');
 var cheerio = require('cheerio');
 var url =  require('url');
 var _ = require('lodash');
+var MongoClient = require('mongodb').MongoClient;
 
 var cursors = new events.EventEmitter();
 var seedLink = 'https://en.wikipedia.org/w/index.php?title=Category:2014_films';
