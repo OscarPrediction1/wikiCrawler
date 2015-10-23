@@ -25,14 +25,18 @@ Films.prototype.start = function(year) {
 		self.loadCategorySite(data.cursor, first);
 	});
 	
-	this.cursors.emit('added', {cursor: seedLink, first: true})
+	this.cursors.emit('added', {cursor: seedLink, first: true});
 };
 
 Films.prototype.loadCategorySite = function(link, first) {
 	var self = this;
-	bc.loadingLog('Parsing site ' + link);
+	// bc.loadingLog('Parsing site ' + link);
+	// console.log('Parsing site ' + link);
 	request(link, function(err, res, body) {
-		//TODO: Error Handling
+		if (err) {
+			console.log(link, 'nicht erreichbar');
+			return;
+		}
 		
 		var $ = cheerio.load(body);
 		var cursor = self.getCursor($, first);
@@ -43,7 +47,7 @@ Films.prototype.loadCategorySite = function(link, first) {
 		
 		self.saveMovies($);
 	});
-}
+};
 
 Films.prototype.getCursor = function(cherrioBody, first) {
 	var self = this;
@@ -79,13 +83,15 @@ Films.prototype.getCursor = function(cherrioBody, first) {
 			return cursors[0];
 		}
 		
+		console.log(this.year + ' wurde abgeschlossen');
 		this.yearComplete();
 	}
-}
+};
 
 Films.prototype.saveMovies = function(cherrioBody) {
 	var self = this;
 	var $ = cherrioBody;
+	//TODO: Anscheinend werden noch Listen mitgespeichert
 	$('#mw-pages .mw-category a').each(function() {
 		var title = $(this).attr('title');
 		var href = $(this).attr('href');
@@ -93,13 +99,17 @@ Films.prototype.saveMovies = function(cherrioBody) {
 		
 		self.createAbsoluteLink(link);
 		
+		var wikiName = link.pathname;
+		wikiName = wikiName.replace('/wiki/','');
+		
 		self.write({
 			title: title,
 			href: url.format(link),
+			wikiName: wikiName,
 			year: self.year
 		});
 	});
-}
+};
 
 Films.prototype.createAbsoluteLink = function(link, options) {
 	if (typeof link === 'string') {
@@ -110,16 +120,16 @@ Films.prototype.createAbsoluteLink = function(link, options) {
 		link.protocol = this.parsedSeedLink.protocol;
 		link.host = this.parsedSeedLink.host;
 	}
-}
+};
 
 Films.prototype.write = function(data) {
 	//fs.appendFile('data.json', JSON.stringify(data));
 	this.db.collection('wiki_films').insert(data);
-}
+};
 
 Films.prototype.yearComplete = function(data) {
 	this.db.collection('wiki_options').update({'key': 'parsedYears'}, {$push: {'value': this.year}});
-}
+};
 
 
 module.exports = Films;

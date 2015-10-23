@@ -6,4 +6,4 @@ exports.loadingLog = function(text) {
     process.stdout.write(loaderIcons[loader_index] + ' ' + text + '\r');
     loader_index++;
     loader_index %= loaderIcons.length;
-}
+};
