@@ -74,8 +74,12 @@ Films.prototype.getCursor = function(cherrioBody, first) {
 	
 	//Falls es nur einen Link gibt, dann ist es entweder Startseite (first) oder
 	//Endseite. Falls Endseite gib nichts zurück.
-	if (cursors.length === 1 && first) {
-		return cursors[0];
+	if (cursors.length === 1) {
+		if (first) {
+			return cursors[0];
+		}
+		
+		this.yearComplete();
 	}
 }
 
@@ -112,5 +116,10 @@ Films.prototype.write = function(data) {
 	//fs.appendFile('data.json', JSON.stringify(data));
 	this.db.collection('wiki_films').insert(data);
 }
+
+Films.prototype.yearComplete = function(data) {
+	this.db.collection('wiki_options').update({'key': 'parsedYears'}, {$push: {'value': this.year}});
+}
+
 
 module.exports = Films;
