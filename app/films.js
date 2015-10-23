@@ -1,4 +1,4 @@
-var fs = require('fs');
+// var fs = require('fs');
 var events = require('events');
 var request = require('request');
 var cheerio = require('cheerio');
@@ -6,40 +6,47 @@ var url =  require('url');
 var _ = require('lodash');
 var bc = require('./betterConsole');
 
-var cursors = new events.EventEmitter();
-var parsedSeedLink;
+function Films(db) {
+	this.db = db;
+}
 
-exports.start = function(year) {
+Films.prototype.start = function(year) {
+	this.year = year;
 	var seedLink = 'https://en.wikipedia.org/w/index.php?title=Category:' + year + '_films';
-	parsedSeedLink = url.parse(seedLink, true);
-	cursors.emit('added', {cursor: seedLink, first: true})
+	this.cursors = new events.EventEmitter();
+	this.parsedSeedLink = url.parse(seedLink, true);
+	var self = this;
+	
+	this.cursors.on('added', function(data) {
+		var first = false;
+		if (data.first === true) {
+			first = true;
+		}
+		self.loadCategorySite(data.cursor, first);
+	});
+	
+	this.cursors.emit('added', {cursor: seedLink, first: true})
 };
 
-cursors.on('added', function(data) {
-	var first = false;
-	if (data.first === true) {
-		first = true;
-	}
-	loadCategorySite(data.cursor, first);
-});
-
-function loadCategorySite(link, first) {
+Films.prototype.loadCategorySite = function(link, first) {
+	var self = this;
 	bc.loadingLog('Parsing site ' + link);
 	request(link, function(err, res, body) {
 		//TODO: Error Handling
 		
 		var $ = cheerio.load(body);
-		var cursor = getCursor($, first);
+		var cursor = self.getCursor($, first);
 		
 		if (cursor) {
-			cursors.emit('added', {cursor: cursor});
+			self.cursors.emit('added', {cursor: cursor});
 		}
 		
-		saveMovies($);
+		self.saveMovies($);
 	});
 }
 
-function getCursor(cherrioBody, first) {
+Films.prototype.getCursor = function(cherrioBody, first) {
+	var self = this;
 	var $ = cherrioBody;
 	var cursors = $('#mw-pages > a').map(function() {	
 		var href = $(this).attr('href');
@@ -52,7 +59,7 @@ function getCursor(cherrioBody, first) {
 		// 	return;
 		// }
 		
-		createAbsoluteLink(link);
+		self.createAbsoluteLink(link);
 		
 		return url.format(link);
 	}).get();
@@ -72,33 +79,38 @@ function getCursor(cherrioBody, first) {
 	}
 }
 
-function saveMovies(cherrioBody) {
+Films.prototype.saveMovies = function(cherrioBody) {
+	var self = this;
 	var $ = cherrioBody;
 	$('#mw-pages .mw-category a').each(function() {
 		var title = $(this).attr('title');
 		var href = $(this).attr('href');
 		var link = url.parse(href, true);
 		
-		createAbsoluteLink(link);
+		self.createAbsoluteLink(link);
 		
-		write({
+		self.write({
 			title: title,
-			href: url.format(link)
+			href: url.format(link),
+			year: self.year
 		});
 	});
 }
 
-function createAbsoluteLink(link, options) {
+Films.prototype.createAbsoluteLink = function(link, options) {
 	if (typeof link === 'string') {
 		link = url.parse(link, true);
 	}
 	
 	if (!link.host) {
-		link.protocol = parsedSeedLink.protocol;
-		link.host = parsedSeedLink.host;
+		link.protocol = this.parsedSeedLink.protocol;
+		link.host = this.parsedSeedLink.host;
 	}
 }
 
-function write(data) {
-	fs.appendFile('data.json', JSON.stringify(data));
+Films.prototype.write = function(data) {
+	//fs.appendFile('data.json', JSON.stringify(data));
+	this.db.collection('wiki_films').insert(data);
 }
+
+module.exports = Films;
