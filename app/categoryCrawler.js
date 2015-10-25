@@ -1,9 +1,11 @@
 var url = require('url');
 var request = require('request');
+var Q = require('q');
 
 function CatCrawler(db, year) {
 	this.year = year;
 	this.db = db;
+	this.openedQueries = 0;
 	this.url = {
 		protocol: 'https:',
 		host: 'en.wikipedia.org',
@@ -20,7 +22,21 @@ function CatCrawler(db, year) {
 };
 
 CatCrawler.prototype.start = function() {
-	this.crawl();	
+	this.done = Q.defer();
+	this.crawl();
+	return this.done.promise;
+};
+
+CatCrawler.prototype.openQuery = function() {
+	this.openedQueries++;
+};
+
+CatCrawler.prototype.closeQuery = function () {
+	this.openedQueries--;
+	if (this.openedQueries === 0) {
+		console.log(this.year + ' crawled');
+		this.done.resolve();
+	}
 };
 
 CatCrawler.prototype.crawl = function(cursor) {
@@ -32,6 +48,8 @@ CatCrawler.prototype.crawl = function(cursor) {
 	}
 	
 	crawlUrl = url.format(crawlUrl);
+	
+	this.openQuery();
 	
 	request(crawlUrl, function(err, res, body) {
 		if (err) {
@@ -45,7 +63,6 @@ CatCrawler.prototype.crawl = function(cursor) {
 		if (result.continue && result.continue.cmcontinue) {
 			self.crawl(result.continue.cmcontinue);
 		} else {
-			console.log(self.year + ' completed');
 			self.yearComplete();
 		}
 		
@@ -59,11 +76,27 @@ CatCrawler.prototype.crawl = function(cursor) {
 };
 
 CatCrawler.prototype.write = function(data) {
-	this.db.collection('wiki_films').insert(data);
+	var self = this;
+	this.db.collection('wiki_films').insert(data, function(err) {
+		if (err) {
+			console.log(err)
+			return;
+		}
+		self.closeQuery();
+	});
 };
 
 CatCrawler.prototype.yearComplete = function() {
-	this.db.collection('wiki_options').update({'key': 'parsedYears'}, {$push: {'value': this.year}});
+	var self = this;
+	this.openQuery();
+	
+	this.db.collection('wiki_options').update({'key': 'parsedYears'}, {$push: {'value': this.year}}, function(err) {
+		if (err) {
+			console.log(err);
+			return;
+		}
+		self.closeQuery();
+	});
 };
 
 module.exports = CatCrawler;
