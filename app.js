@@ -1,5 +1,5 @@
 var appDir = './app/';
-var Films = require(appDir + 'films');
+var CatCrawler = require(appDir + 'categoryCrawler');
 var config = require(appDir + 'config');
 var MongoClient = require('mongodb').MongoClient;
 
@@ -54,8 +54,8 @@ function crawlFilms(db) {
 
 function crawlYear(db, year) {
 	deleteYear(db, year, function() {
-		var films = new Films(db);
-		films.start(year);
+		var catCrawler = new CatCrawler(db, year);
+		catCrawler.start();
 	});
 }
 
