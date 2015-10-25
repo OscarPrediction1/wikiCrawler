@@ -17,25 +17,32 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 
 function parseArguments(db) {
 	var args = process.argv.slice(2); //Ersten beiden sind rubbish
+	if (args.length === 0) {
+		return help(db);
+	}
 	args.forEach(function(arg) {
 		if (arg === 'crawl-films') {
-			crawlFilms(db);
+			return crawlFilms(db);
+		}
+		
+		if (arg === 'create-default-options') {
+			return createDefaultOptions(db);
 		}
 	});
 }
 
-function getOption(db, key) {
-	var defered = Q.defer();
-	db.collection('wiki_options').findOne({'key': key}, function(err, result) {
-		if (err) {
-			console.log("Can't connect to DB!", err);
-			defered.reject(err);
-			return;
-		}
-		
-		defered.resolve(result.value);
+function help(db) {
+	console.log('Wikipedia Films Crawler');
+	console.log('Parameters: create-default-options, crawl-films, crawl-view-stats');
+	db.close();
+}
+
+function createDefaultOptions(db) {
+	updateOption(db, 'parsedYears', []).then(function() {
+		return updateOption(db, 'firstYearToParse', 2000);
+	}).then(function() {
+		db.close();
 	});
-	return defered.promise;
 }
 
 function crawlFilms(db) {
@@ -64,6 +71,33 @@ function crawlFilms(db) {
 	});
 }
 
+function getOption(db, key) {
+	var defered = Q.defer();
+	db.collection('wiki_options').findOne({'key': key}, function(err, result) {
+		if (err) {
+			console.log("Can't connect to DB!", err);
+			defered.reject(err);
+			return;
+		}
+		
+		defered.resolve(result.value);
+	});
+	return defered.promise;
+}
+
+function updateOption(db, key, value) {
+	var defered = Q.defer();
+	db.collection('wiki_options').update({'key': key}, {'key': key, 'value': value}, {upsert:true}, function(err) {
+		if (err) {
+			console.log(err);
+			defered.reject(err);
+			return;
+		}
+		defered.resolve();
+	});
+	return defered.promise;
+}
+
 function crawlYear(db, year) {
 	return deleteYear(db, year).then(function() {
 		var catCrawler = new CatCrawler(db, year);
@@ -86,6 +120,7 @@ function deleteFilms(db, year) {
 
 function deleteParsedYearOption(db, year) {
 	var defered = Q.defer();
+	//TODO: Funktioniert, warum auch immer, noch nicht
 	db.collection('wiki_options').update({'key': 'parsedYears'}, {$pull: {'value': this.year}}, function(err) {
 		if (err) {
 			console.log(err);
