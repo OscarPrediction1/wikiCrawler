@@ -77,7 +77,10 @@ function crawlFilms(db) {
 }
 
 function crawlViews(db) {
-	var cursor = db.collection('wiki_films').find({year: {$gte: 2008}});
+	//TODO: Nur einzelne Jahre, in config speichern, wie weit wir sind
+	// var query = {year: {$gte: 2008}, {views: {$exists: false}}};
+	var query = {year: {$gte: 2008}, views: {$exists: false}};
+	var cursor = db.collection('wiki_films').find(query);
 	cursor.count(function(err, count) {
 		var savesPending = count;
 
@@ -97,7 +100,6 @@ function crawlViews(db) {
 			if (res != null) {
 				var viewCrawler = new ViewCrawler(db, res.title, res.year, res.pageid);
 				viewCrawler.start().then(function() {
-					console.log(res.title);
 					saveFinished();
 				});
 			}
