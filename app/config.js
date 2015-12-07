@@ -1,5 +1,5 @@
 exports.mongodb = {
-    host: process.env.MONGODB_HOST || '23.102.28.222',
+    host: process.env.MONGODB_HOST || 'bitnami-meanstack-1842.cloudapp.net',
     port: process.env.MONGODB_PORT || '27017',
     user: process.env.MONGODB_USER || 'oscar',
     database: process.env.MONGODB_DATABASE || 'oscar',
