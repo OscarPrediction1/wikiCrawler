@@ -16,12 +16,27 @@ npm install
 ## Run
 Crawl all films
 ```bash
-node crawl_wiki_films.js
+node app.js all
 ```
 
-Crawl only specific url
+Crawl only specific film for all years
 ```bash
-node crawl_url.js [URL]
+node app.js film --boxOfficeId [boxOfficeId]
+```
+
+Crawl only a specific year for a specific film
+```bash
+node app.js film --boxOfficeId [boxOfficeId] --year [year]
+```
+
+Crawl only a specific month for a specific film
+```bash
+node app.js film --boxOfficeId [boxOfficeId] --year [year] --month [month]
+```
+
+Crawl only a specific url for a specific film
+```bash
+node app.js film --boxOfficeId [boxOfficeId] --url [url]
 ```
 
 ## Cloud9
