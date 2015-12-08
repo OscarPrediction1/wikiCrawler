@@ -50,19 +50,16 @@ function film() {
 		var film = rows[0];
 		
 		if (argv.year && argv.month) {
-			console.log('month');
 			crawler.crawlMonth(film, argv.year, argv.month, saveViews);
 			return;
 		}
 		
 		if (argv.year) {
-			console.log('year');
 			crawler.crawlYear(film, argv.year, saveViews);
 			return;
 		}
 		
 		if (argv.url) {
-			console.log('url');
 			crawler.crawlUrl(film, argv.url, saveViews);
 			return;
 		}
