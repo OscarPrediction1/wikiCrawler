@@ -3,3 +3,5 @@ node_modules
 data.json
 *.log
 app/config.js
+wiki_views_for_bigquery.csv
+wiki_views_timeseries.csv

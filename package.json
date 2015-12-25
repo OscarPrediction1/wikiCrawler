@@ -9,6 +9,7 @@
   "author": "Sean Dieterle",
   "license": "MIT",
   "dependencies": {
+    "csv-write-stream": "^1.0.0",
     "lodash": "^3.10.1",
     "mysql": "^2.9.0",
     "request": "^2.65.0",

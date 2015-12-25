@@ -16,6 +16,7 @@ var argv = require('yargs')
     .argv;
 
 var firstArg = argv._[0];
+
 if (firstArg === 'all') {
 	all();
 }

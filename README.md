@@ -39,5 +39,13 @@ Crawl only a specific url for a specific film
 node app.js film --boxOfficeId [boxOfficeId] --url [url]
 ```
 
+## Export
+Check if your MYSQL user has the global right to access files.
+
+Export csv (can be used for bigquery)
+ ```bash
+node export.js bigquery
+```
+
 ## Cloud9
 https://ide.c9.io/rechenberger/oscar-wiki-crawler
