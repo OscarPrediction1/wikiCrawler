@@ -8,6 +8,7 @@ var argv = require('yargs')
     .command('bigquery', 'Export for bigquery')
 	.command('timeseries', 'Export for using as time series in knime')
     .demand(1)
+    .describe('where', 'SQL-WHERE Query')
     .argv;
 	
 var firstArg = argv._[0];
@@ -61,7 +62,8 @@ function bigquery() {
 	
 	var query = "SELECT * ";
 	query += getExportQueryFragment();
-	query += "FROM wiki_views WHERE 1";
+    var where = argv.where || "1";
+	query += "FROM wiki_views WHERE " + where;
 
 	runQuery(query, parameters);
 }
@@ -76,7 +78,8 @@ function timeseries() {
 	
 	var query = "SELECT date, GROUP_CONCAT(views ORDER BY boxOfficeId) ";
 	query += getExportQueryFragment();
-	query += "FROM wiki_views WHERE 1 GROUP BY date";
+    var where = argv.where || "1";
+	query += "FROM wiki_views WHERE " + where + " GROUP BY date";
 	
 	runQuery(query, parameters, function() {
 		var data = fs.readFileSync(parameters[0]);

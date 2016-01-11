@@ -8,6 +8,7 @@ var argv = require('yargs')
 	.command('film', 'Only crawl a specific film')
     .demand(1)
 	.describe('boxOfficeId', 'BoxOfficeId of film')
+    .describe('boxOfficeIds', 'Comma separated list of BoxOfficeIds')
 	.describe('year', 'Year to crawl')
 	.describe('month', 'Month to crawl. --year must be specified')
 	.describe('url', 'stats.grok.se url to crawl')
@@ -22,7 +23,11 @@ if (firstArg === 'all') {
 }
 
 if (firstArg === 'film') {
-	film();
+	film(argv.boxOfficeId);
+}
+
+if (firstArg === 'films') {
+	films(argv.boxOfficeIds);
 }
 
 function all() {
@@ -39,9 +44,7 @@ function all() {
 	});
 }
 
-function film() {
-	var boxOfficeId = argv.boxOfficeId;
-	
+function film(boxOfficeId) {	
 	connection.query('SELECT * FROM wiki_films WHERE boxOfficeId = ?', [boxOfficeId], function(err, rows) {
 		if (err) {
 			log.log('error', err);
@@ -67,4 +70,11 @@ function film() {
 		
 		crawler.crawlFilm(film, saveViews);
 	});
+}
+
+function films(boxOfficeIdsString) {
+    var boxOfficeIds = boxOfficeIdsString.split(',');
+    for (var key in boxOfficeIds) {
+        film(boxOfficeIds[key]);
+    }
 }

@@ -19,6 +19,11 @@ Crawl all films
 node app.js all
 ```
 
+Crawl multiple films (can be used with year and month)
+```bash
+node app.js films --boxOfficeIds [boxOfficeId1],[boxOfficeId2],[...],[boxOfficeIdN]
+```
+
 Crawl only specific film for all years
 ```bash
 node app.js film --boxOfficeId [boxOfficeId]
@@ -47,5 +52,16 @@ Export csv (can be used for bigquery)
 node export.js bigquery
 ```
 
+Export csv with custom where
+ ```bash
+node export.js bigquery --where "[Where-Clause]"
+```
+
 ## Cloud9
 https://ide.c9.io/rechenberger/oscar-wiki-crawler
+
+## Procedure to crawl new nominations
+* Add boxOfficeId, pageid, title to wiki_films table
+* Run the node app.js films... script with new boxOfficeIds for the month between nomination and awards
+* Remove all entries before nomination date && after award date
+* Export via node export.js bigquery --where... script where "where" is the duration between nomination and awards
