@@ -63,5 +63,4 @@ https://ide.c9.io/rechenberger/oscar-wiki-crawler
 ## Procedure to crawl new nominations
 * Add boxOfficeId, pageid, title to wiki_films table
 * Run the node app.js films... script with new boxOfficeIds for the month between nomination and awards
-* Remove all entries before nomination date && after award date
 * Export via node export.js bigquery --where... script where "where" is the duration between nomination and awards

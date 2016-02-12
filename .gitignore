@@ -5,3 +5,4 @@ data.json
 app/config.js
 wiki_views_for_bigquery.csv
 wiki_views_timeseries.csv
+wiki_views_nom_2016.csv
